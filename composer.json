@@ -1,0 +1,20 @@
+{
+    "name": "neko/database",
+    "description": "neko microframework database layer",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Reids",
+            "email": "reids@neoblackant.org"
+        }
+    ],
+    "require": {
+        "php": ">=5.4.0",
+        "psr/log": "~1.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "Neko\\Database\\": "src"
+        }
+    }
+}
