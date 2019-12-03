@@ -16,5 +16,6 @@
         "psr-4": {
             "Neko\\Database\\": "src"
         }
-    }
+    },
+    "minimum-stability": "dev"
 }
