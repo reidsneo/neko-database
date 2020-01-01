@@ -3,14 +3,14 @@
 abstract class BaseAdapter
 {
     /**
-     * @var \Neko\Database\Containers
+     * @var \Neko\Facade\Container
      */
     protected $container;
 
     /**
-     * @param \Neko\Database\Containers $container
+     * @param \Neko\Facade\Container $container
      */
-    public function __construct(\Neko\Database\Container\Container $container)
+    public function __construct(\Neko\Facade\Container $container)
     {
         $this->container = $container;
     }

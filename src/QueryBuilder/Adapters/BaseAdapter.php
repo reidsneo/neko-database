@@ -12,7 +12,7 @@ abstract class BaseAdapter
     protected $connection;
 
     /**
-     * @var \Viocon\Container
+     * @var \Neko\Facade\Container
      */
     protected $container;
 

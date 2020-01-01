@@ -1,7 +1,7 @@
 <?php namespace Neko\Database;
 
 use Neko\Database\QueryBuilder\Raw;
-use Neko\Support\Facade\Container;
+use Neko\Facade\Container;
 
 class Connection
 {
@@ -44,7 +44,7 @@ class Connection
      */
     public function __construct($adapter, array $adapterConfig, $alias = null, Container $container = null)
     {
-        $container = $container ? : new \Neko\Support\Facade\Container\Container();
+        $container = $container ? : new \Neko\Facade\Container();
 
         $this->container = $container;
 
