@@ -1,21 +1,23 @@
 {
-    "name": "neko/database",
-    "description": "neko microframework database layer",
-    "license": "MIT",
-    "authors": [
-        {
-            "name": "Reids",
-            "email": "reids@neoblackant.org"
-        }
-    ],
-    "require": {
-        "php": ">=5.4.0",
-        "psr/log": "~1.0"
-    },
-    "autoload": {
-        "psr-4": {
-            "Neko\\Database\\": "src"
-        }
-    },
-    "minimum-stability": "dev"
+  "name": "neko/database",
+  "description": "A lightweight, expressive, framework agnostic query builder for PHP.",
+  "keywords": [
+  ],
+  "license": "MIT",
+  "minimum-stability": "dev",
+  "authors": [
+    {
+      "name": "Muhammad Usman",
+      "email": "hi@usman.it"
+    }
+  ],
+  "require": {
+    "php": ">=5.4.0",
+    "usmanhalalit/viocon": "1.0.*@dev"
+  },
+  "autoload": {
+    "psr-0": {
+      "Neko\\Database\\": "src/"
+    }
+  }
 }
