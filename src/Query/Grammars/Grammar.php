@@ -103,9 +103,10 @@ class Grammar
      */
     protected function wrapValue($value)
     {
-        if ($value === '*') return $value;
+        // if ($value === '*') return $value;
 
-        return '"' . str_replace('"', '""', $value) . '"';
+        // return '"' . str_replace('"', '""', $value) . '"';
+        return ('*' === $value) ? '*' : sprintf($this->wrapper, $value);
     }
 
     /**
@@ -1008,6 +1009,18 @@ class Grammar
     private function throwUnsupportedGrammarException($grammarDescription)
     {
         throw new UnsupportedGrammarException("$grammarDescription is not supported by the " . get_called_class() . " grammar driver");
+    }
+
+    /**
+     * Bungkus sebuah string value dalam keyword identifier.
+     *
+     * @param string $value
+     *
+     * @return string
+     */
+    protected function wrap_value($value)
+    {
+        return ('*' === $value) ? '*' : sprintf($this->wrapper, $value);
     }
 
 }

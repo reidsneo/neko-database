@@ -1,5 +1,7 @@
 <?php
 namespace Neko\Database;
+use Neko\Framework\Util\Arr;
+use Neko\Framework\Util\Str;
 
 class Builder extends \Neko\Database\Query\Builder {
 	/**
@@ -55,7 +57,7 @@ class Builder extends \Neko\Database\Query\Builder {
 	 * @return int
 	 */
 	public function update( array $values ) {
-		return (int) parent::update( $values );
+		return parent::update( $values );
 	}
 
 	/**
@@ -193,4 +195,326 @@ class Builder extends \Neko\Database\Query\Builder {
 
 		return $result;
 	}
+	
+	/**
+     * Paginate the given query into a simple paginator.
+     *
+     * @param  int  $perPage
+     * @param  array  $columns
+     * @param  string  $pageName
+     * @param  int|null  $page
+     */
+	public function paginate($perPage = 15, $columns = ['*'], $pageName = 'page', $page = null)
+    {
+		$page = $page ?: self::resolveCurrentPage($pageName);
+
+        $total = $this->getCountForPagination();
+
+		$results = $total ? $this->forPage($page, $perPage)->get($columns) : array();
+
+		return $this->paginator($results, $total, $perPage, $page, [
+            'path' => self::resolveCurrentPath(),
+            'pageName' => $pageName,
+        ]);
+	}
+
+	
+	
+	/**
+     * Create a new paginator instance.
+     *
+     * @param  mixed  $items
+     * @param  int  $total
+     * @param  int  $perPage
+     * @param  int|null  $currentPage
+     * @param  array  $options (path, query, fragment, pageName)
+     * @return void
+     */
+    public function paginator($items, $total, $perPage, $currentPage = null, array $options = [])
+    {
+        $this->options = $options;
+
+        foreach ($options as $key => $value) {
+            $this->{$key} = $value;
+        }
+
+        $this->total = $total;
+        $this->perPage = $perPage;
+        $this->lastPage = max((int) ceil($total / $perPage), 1);
+        $this->path = $this->path !== '/' ? rtrim($this->path, '/') : $this->path;
+		$this->currentPage = $this->setCurrentPage($currentPage, $this->pageName);
+
+		//var_dump($this->total);
+		//var_dump($this->perPage);
+		//var_dump($this->lastPage);
+		//var_dump($this->path);
+		//var_dump($this->currentPage);
+		//var_dump($items);
+		$this->setItems($items);
+		return $this;
+    }
+	
+
+	public function currentPage()
+    {
+        return $this->currentPage;
+	}
+	
+    public function path()
+    {
+        return $this->path;
+    }
+
+
+	public function url($page)
+    {
+        if ($page <= 0) {
+            $page = 1;
+        }
+
+        // If we have any extra query string key / value pairs that need to be added
+        // onto the URL, we will put them in query string form and then attach it
+        // to the URL. This allows for extra information like sortings storage.
+        $parameters = [$this->pageName => $page];
+
+        if (count($this->query) > 0) {
+            $parameters = array_merge($this->query, $parameters);
+		}
+
+        return $this->path()
+                        .(Str::contains($this->path(), '?') ? '&' : '?')
+                        .Arr::query($parameters)
+                        .$this->buildFragment();
+    }
+
+	public function toArray()
+    {
+        return [
+            'current_page' => $this->currentPage(),
+            'data' => $this->items,
+            'first_page_url' => $this->url(1),
+            'from' => $this->firstItem(),
+            'next_page_url' => $this->nextPageUrl(),
+            'path' => $this->path(),
+            'per_page' => $this->perPage(),
+            'prev_page_url' => $this->previousPageUrl(),
+            'to' => $this->lastItem(),
+        ];
+	}
+	public function total()
+    {
+        return $this->total;
+	}
+	public function firstItem()
+    {
+        return count($this->items) > 0 ? ($this->currentPage - 1) * $this->perPage + 1 : null;
+	}
+	public function nextPageUrl()
+    {
+        if ($this->hasMorePages()) {
+            return $this->url($this->currentPage() + 1);
+        }
+	}
+	public function lastPage()
+    {
+        return $this->lastPage;
+	}
+	 public function jsonSerialize()
+    {
+        return $this->toArray();
+	}
+	public function toJson($options = 0)
+    {
+        return json_encode($this->jsonSerialize(), $options);
+    }
+    public function perPage()
+    {
+        return $this->perPage;
+	}
+	
+    public function lastItem()
+    {
+        return count($this->items) > 0 ? $this->firstItem() + $this->count() - 1 : null;
+    }
+	
+    public function previousPageUrl()
+    {
+        if ($this->currentPage() > 1) {
+            return $this->url($this->currentPage() - 1);
+        }
+    }
+
+	public function hasMorePages()
+    {
+        return $this->currentPage() < $this->lastPage();
+    }
+
+	protected function buildFragment()
+    {
+        return $this->fragment ? '#'.$this->fragment : '';
+    }
+
+    protected static $currentPathResolver;
+
+	public static function resolveCurrentPath($default = '/')
+    {
+		global $app;
+		$protocol = "";
+		if($app->request->server['HTTPS']=="on")
+		{
+			$protocol = "https://";
+		}else{
+			$protocol = "http://";
+		}
+		return $protocol.$app->request->server['HTTP_HOST']."/".$app->request->path();
+	}
+
+	
+	protected function setItems($items)
+    {
+        $this->items = $items;
+
+        $this->hasMore = count($this->items) > $this->perPage;
+
+		$this->items = array_slice($this->items,0, $this->perPage);
+    }
+
+
+	/**
+     * Resolve the current page or return the default value.
+     *
+     * @param  string  $pageName
+     * @param  int  $default
+     * @return int
+     */
+	
+    protected static $currentPageResolver;
+    public static function resolveCurrentPage($pageName = 'page', $default = 1)
+    {
+        return empty($_GET[$pageName]) ? 1 : $_GET[$pageName];
+	}
+
+	public static function currentPageResolver($resolver)
+    {
+        static::$currentPageResolver = $resolver;
+    }
+	
+
+	
+	
+
+	public function getCountForPagination($columns = ['*'])
+    {
+        $results = $this->runPaginationCountQuery($columns);
+
+        // Once we have run the pagination count query, we will get the resulting count and
+        // take into account what type of query it was. When there is a group by we will
+        // just return the count of the entire results set since that will be correct.
+        if (! isset($results[0])) {
+            return 0;
+        } elseif (is_object($results[0])) {
+            return (int) $results[0]->aggregate;
+        }
+
+        return (int) array_change_key_case((array) $results[0])['aggregate'];
+	}
+	
+	protected function setAggregate($function, $columns)
+    {
+        $this->aggregate = compact('function', 'columns');
+
+        if (empty($this->groups)) {
+            $this->orders = null;
+
+            $this->bindings['order'] = [];
+        }
+
+        return $this;
+	}
+	
+	protected function runPaginationCountQuery($columns = ['*'])
+    {
+        if ($this->groups || $this->havings) {
+            $clone = $this->cloneForPaginationCount();
+
+            if (is_null($clone->columns) && ! empty($this->joins)) {
+                $clone->select($this->from.'.*');
+            }
+
+            return $this->newQuery()
+                ->from(new Expression('('.$clone->toSql().') as '.$this->grammar->wrap('aggregate_table')))
+                ->mergeBindings($clone)
+                ->setAggregate('count', $this->withoutSelectAliases($columns))
+                ->get()->all();
+        }
+
+        $without = $this->unions ? ['orders', 'limit', 'offset'] : ['columns', 'orders', 'limit', 'offset'];
+
+        return $this->cloneWithout($without)
+                    ->cloneWithoutBindings($this->unions ? ['order'] : ['select', 'order'])
+                    ->setAggregate('count', $this->withoutSelectAliases($columns))
+                    ->get();
+	}
+	
+
+
+	 /**
+     * Remove the column aliases since they will break count queries.
+     *
+     * @param  array  $columns
+     * @return array
+     */
+    protected function withoutSelectAliases(array $columns)
+    {
+        return array_map(function ($column) {
+            return is_string($column) && ($aliasPosition = stripos($column, ' as ')) !== false
+                    ? substr($column, 0, $aliasPosition) : $column;
+        }, $columns);
+    }
+
+	/**
+     * Clone the query without the given bindings.
+     *
+     * @param  array  $except
+     * @return static
+     */
+    public function cloneWithoutBindings(array $except)
+    {
+        return tap(clone $this, function ($clone) use ($except) {
+            foreach ($except as $type) {
+                $clone->bindings[$type] = [];
+            }
+        });
+	}
+	
+	
+	/**
+     * Clone the query without the given properties.
+     *
+     * @param  array  $properties
+     * @return static
+     */
+    public function cloneWithout(array $properties)
+    {
+        return tap(clone $this, function ($clone) use ($properties) {
+            foreach ($properties as $property) {
+                $clone->{$property} = null;
+            }
+        });
+    }
+	
+	
+	protected function setCurrentPage($currentPage)
+    {
+        $currentPage = $currentPage;
+
+        return $this->isValidPageNumber($currentPage) ? (int) $currentPage : 1;
+	}
+	
+	protected function isValidPageNumber($page)
+    {
+        return $page >= 1 && filter_var($page, FILTER_VALIDATE_INT) !== false;
+	}
+
+
 }

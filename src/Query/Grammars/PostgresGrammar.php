@@ -4,6 +4,12 @@ use Neko\Database\Query\Builder;
 
 class PostgresGrammar extends Grammar
 {
+    /**
+     * Identifier keyword milik engine database.
+     *
+     * @var string
+     */
+    public $wrapper = '%s';
 
     /**
      * All of the available clause operators.

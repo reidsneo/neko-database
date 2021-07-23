@@ -475,6 +475,11 @@ class Builder
         return $this->where($column, $operator, $value, 'or');
     }
 
+    public function andWhere($column, $operator = null, $value = null)
+    {
+        return $this->where($column, $operator, $value, 'and');
+    }
+
     /**
      * Add a raw where clause to the query.
      *
@@ -1743,7 +1748,6 @@ class Builder
         $bindings = array_values(array_merge($values, $this->getBindings()));
 
         $sql = $this->grammar->compileUpdate($this, $values);
-
         return $this->connection->query($sql, $this->cleanBindings($bindings));
     }
 
@@ -1795,8 +1799,8 @@ class Builder
         if (!is_null($id)) $this->where('id', '=', $id);
 
         $sql = $this->grammar->compileDelete($this);
-
-        return $this->connection->query($sql, $this->getBindings());
+        $this->connection->query($sql, $this->getBindings());
+        //without return //todo
     }
 
     /**

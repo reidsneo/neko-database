@@ -46,7 +46,7 @@ class ExceptionHandler implements ExceptionHandlerInterface
     
         $message =  $previousException->getMessage() . PHP_EOL . $this->formatArrayParameters($parameters);
 
-        throw new QueryException($message, $previousException);
+        throw new QueryException($message, $bindings, $previousException);
     }
 
     /**

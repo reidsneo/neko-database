@@ -1,10 +1,7 @@
 <?php
 namespace Neko\Database;
 
-use Neko\Database\ConnectionInterface;
 use Neko\Database\Connectors\ConnectionFactory;
-use PDO;
-
 /**
  * Main database class.
  *
@@ -15,19 +12,19 @@ use PDO;
  * @method static mixed                                          transaction( \Closure $callback )
  * @method static array                                          pretend( \Closure $callback )
  * @method static bool                                           pretending()
- * @method static \Psr\Log\LoggerInterface|\Database\QueryLogger getLogger()
+ * @method static \Database\QueryLogger getLogger()
  * @method static bool                                           logging()
- * @method static \Awethemes\Database\Connection                 enableQueryLog()
- * @method static \Awethemes\Database\Connection                 disableQueryLog()
- * @method static \Awethemes\Database\Builder                    newQuery()
+ * @method static \Neko\Database\Connection						enableQueryLog()
+ * @method static \Neko\Database\Connection						disableQueryLog()
+ * @method static \Neko\Database\Builder						newQuery()
  *
- * @package Awethemes\WP_Object\Database
+ * @package \Neko\Database
  */
 class DB {
 	/**
 	 * The database connection.
 	 *
-	 * @var \Awethemes\Database\Connection
+	 * @var \Neko\Database\Connection
 	 */
 	protected static $connection;
 	
@@ -37,7 +34,7 @@ class DB {
 	 *
 	 * @param  string $table
 	 *
-	 * @return \Awethemes\Database\Builder
+	 * @return \Neko\Database\Builder
 	 */
 	public static function table( $table ) {
 		return static::getConnection()->table( $table );
@@ -54,22 +51,27 @@ class DB {
 		return static::getConnection()->fetchAll( $query, $bindings );
 	}
 
-	public static function connection($constring) {
+	public static function connection($con_string) {
 		global $app;
-		//$app->dd($app->config['db'][$constring]);
-		$factory = new \Neko\Database\Connectors\ConnectionFactory();
-		$con = $factory->make($app->config['db'][$constring]);
+		if($con_string == null)
+		{
+			$con_string = $app->config['db']["default"];
+		}else{
+			$con_string = $app->config['db'][$con_string];
+		}
+
+		$factory = new ConnectionFactory();
+		$con = $factory->make($con_string);
 		return $con;
 	}
 
 	/**
 	 * Get the connection instance.
 	 *
-	 * @return \Database\ConnectionInterface|\Awethemes\Database\Connection
+	 * @return \Database\ConnectionInterface|\Neko\Database\Connection
 	 */
 	public static function getConnection() {
 		global $pdo;
-
 
 		if ( is_null( static::$connection ) ) {
 			static::$connection = new Connection( $pdo );
@@ -83,10 +85,20 @@ class DB {
 	 *
 	 * @param \Database\ConnectionInterface $connection
 	 */
-	public static function setConnection($constr) {
+	public static function setConnection($con_string) {
 		global $app;
-		$factory = new \Neko\Database\Connectors\ConnectionFactory();
-		$con = $factory->make($app->config['db'][$constr]);
+		$factory = new ConnectionFactory();
+
+		if($con_string == null)
+		{
+			$con_string = $app->config['db']["default"];
+		}else{
+			$con_string = $app->config['db'][$con_string];
+		}
+
+		$con = $factory->make($con_string);
+		$logging = (isset($con_string['logging']) && $con_string['logging']!==false) ? true : false;		
+		$con->enableQueryLog($logging);
 		static::$connection = $con;
 	}
 

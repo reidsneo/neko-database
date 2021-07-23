@@ -4,6 +4,12 @@ use Neko\Database\Query\Builder;
 
 class SQLiteGrammar extends Grammar
 {
+    /**
+     * Identifier keyword milik engine database.
+     *
+     * @var string
+     */
+    public $wrapper = '%s';
 
     /**
      * All of the available clause operators.

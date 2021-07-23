@@ -7,13 +7,10 @@ use Neko\Database\Query\Grammars\Grammar;
 use PDO;
 use Closure;
 use DateTime;
-use Psr\Log\LoggerAwareTrait;
-use Psr\Log\LoggerInterface;
+use Neko\Framework\Log;
 
 class Connection implements ConnectionInterface
 {
-    use LoggerAwareTrait;
-
     /**
      * The active PDO connection.
      *
@@ -323,6 +320,7 @@ class Connection implements ConnectionInterface
      */
     protected function run($query, $bindings, $useReadPdo = false)
     {
+        global $app;
         $this->reconnectIfMissingConnection();
 
         // We can calculate the time it takes to execute the query and log the SQL, bindings and time against our logger.
@@ -330,6 +328,7 @@ class Connection implements ConnectionInterface
 
         $statement = $this->execute($query, $bindings, $useReadPdo);
 
+        $app->hook->apply('database_exec', [$query, $bindings, $start]);
         $this->logQuery($query, $bindings, $start);
 
         return $statement;
@@ -540,14 +539,14 @@ class Connection implements ConnectionInterface
      */
     protected function logQuery($query, $bindings, $start = null)
     {
-        if (!$this->loggingQueries || !$this->logger) return;
-
+        if ($this->loggingQueries==false) return;
         $time = $start ? round((microtime(true) - $start) * 1000, 2) : null;
 
-        $this->logger->debug($query, array(
+        Log::write("debug",array(
+            'query' => $query,
             'bindings' => $bindings,
             'time' => $time
-        ));
+        ),true);
     }
 
     /**
@@ -623,7 +622,7 @@ class Connection implements ConnectionInterface
     {
         return $this->pdo->getAttribute(\PDO::ATTR_DRIVER_NAME);
     }
-
+    
     /**
      * Get the query grammar used by the connection.
      *
@@ -685,27 +684,9 @@ class Connection implements ConnectionInterface
      *
      * @return $this
      */
-    public function enableQueryLog()
+    public function enableQueryLog($bool=false)
     {
-        $this->loggingQueries = true;
-
-        if(!$this->logger)
-        {
-            $this->logger = new QueryLogger();
-        }
-
-        return $this;
-    }
-
-    /**
-     * Disable the query log on the connection.
-     *
-     * @return $this
-     */
-    public function disableQueryLog()
-    {
-        $this->loggingQueries = false;
-
+        $this->loggingQueries = $bool;
         return $this;
     }
 
@@ -749,9 +730,9 @@ class Connection implements ConnectionInterface
      *
      * @return LoggerInterface $logger
      */
-    public function getLogger()
+    public function setLogger($bool=false)
     {
-        return $this->logger;
+        return $bool;
     }
 
     /**
@@ -763,5 +744,30 @@ class Connection implements ConnectionInterface
         $this->exceptionHandler = $exceptionHandler;
 
         return $this;
+    }
+
+    /**
+     * Jalankan sebuah query terhadap koneksi saat ini dan return hasil pertama.
+     *
+     * <code>
+     *
+     *      // Jalankan sebuah query terhadap koneksi
+     *      $user = DB::connection()->first('SELECT * FROM users');
+     *
+     *      // Jalankan sebuah query terhadap koneksi dengan tambahan binding data
+     *      $user = DB::connection()->first('SELECT * FROM users WHERE id = ?', [$id]);
+     *
+     * </code>
+     *
+     * @param string $sql
+     * @param array  $bindings
+     *
+     * @return object
+     */
+    public function first($sql, $bindings = [])
+    {
+        if (count($results = $this->query($sql, $bindings)->fetchAll($this->getFetchMode())) > 0) {
+            return $results[0];
+        }
     }
 }

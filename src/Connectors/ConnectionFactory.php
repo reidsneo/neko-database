@@ -6,8 +6,6 @@ use Neko\Database\Query\Grammars\MySqlGrammar;
 use Neko\Database\Query\Grammars\PostgresGrammar;
 use Neko\Database\Query\Grammars\SqlServerGrammar;
 use Neko\Database\Query\Grammars\SQLiteGrammar;
-use Neko\Database\QueryLogger;
-use Psr\Log\LoggerInterface;
 
 /**
  * Class ConnectionFactory
@@ -53,13 +51,11 @@ class ConnectionFactory implements ConnectionFactoryInterface
      */
     protected $excludedLogParams = array('password');
 
-    public function __construct($connectionClassName = null, LoggerInterface $logger = null)
+    public function __construct($connectionClassName = null)
     {
         if ($connectionClassName) {
             $this->connectionClassName = $connectionClassName;
         }
-
-        $this->logger = $logger ?: new QueryLogger();
     }
 
     /**
@@ -111,8 +107,7 @@ class ConnectionFactory implements ConnectionFactoryInterface
         $connection
             ->setExceptionHandler($this->createExceptionHandler($config))
             ->setQueryGrammar($this->createQueryGrammar($config['driver']))
-            ->setTablePrefix(isset($config['prefix']) ? $config['prefix'] : '')
-            ->setLogger($this->logger);
+            ->setTablePrefix(isset($config['prefix']) ? $config['prefix'] : '');
 
         if(!$lazy)
         {
