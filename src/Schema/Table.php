@@ -322,6 +322,45 @@ class Table
     }
 
     /**
+     * Tambahkan kolom smallint ke tabel.
+     *
+     * @param string $name
+     * @param bool   $increment
+     *
+     * @return Magic
+     */
+    public function smallint($name, $increment = false)
+    {
+        return $this->column('integer', compact('name', 'increment'));
+    }
+
+    /**
+     * Tambahkan kolom smallint ke tabel.
+     *
+     * @param string $name
+     * @param bool   $increment
+     *
+     * @return Magic
+     */
+    public function tinyInteger($name, $increment = false)
+    {
+        return $this->column('integer', compact('name', 'increment'));
+    }
+
+    /**
+     * Tambahkan kolom bigint ke tabel.
+     *
+     * @param string $name
+     * @param bool   $increment
+     *
+     * @return Magic
+     */
+    public function bigint($name, $increment = false)
+    {
+        return $this->column('integer', compact('name', 'increment'));
+    }
+
+    /**
      * Tambahkan kolom float ke tabel.
      *
      * @param string $name
@@ -360,6 +399,18 @@ class Table
     }
 
     /**
+     * Tambahkan kolom enum ke tabel.
+     *
+     * @param string $name
+     *
+     * @return Magic
+     */
+    public function enum($name,$column)
+    {
+        return $this->column('enum', compact('name','column'));
+    }
+
+    /**
      * Buat kolom datetime created_at dan updated_at.
      */
     public function timestamps()
@@ -381,6 +432,18 @@ class Table
     }
 
     /**
+     * Tambahkan kolom datetime ke tabel.
+     *
+     * @param string $name
+     *
+     * @return Magic
+     */
+    public function datetime($name)
+    {
+        return $this->column('date', compact('name'));
+    }
+
+    /**
      * Tambahkan kolom timestamp ke tabel.
      *
      * @param string $name
@@ -390,6 +453,18 @@ class Table
     public function timestamp($name)
     {
         return $this->column('timestamp', compact('name'));
+    }
+
+    /**
+     * Tambahkan kolom timestamp ke tabel.
+     *
+     * @param string $name
+     *
+     * @return Magic
+     */
+    public function time($name)
+    {
+        return $this->column('time', compact('name'));
     }
 
     /**

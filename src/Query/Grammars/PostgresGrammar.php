@@ -9,7 +9,7 @@ class PostgresGrammar extends Grammar
      *
      * @var string
      */
-    public $wrapper = '%s';
+    public $wrapper = '"%s"';
 
     /**
      * All of the available clause operators.
@@ -171,6 +171,49 @@ class PostgresGrammar extends Grammar
     public function compileTruncate(Builder $query)
     {
         return array('truncate ' . $this->wrapTable($query->from) . ' restart identity' => array());
+    }
+
+    /**
+     * Wrap a single string in keyword identifiers.
+     *
+     * @param  string $value
+     * @return string
+     */
+    protected function wrapValue($value)
+    {
+        // if ($value === '*') return $value;
+
+        // return '"' . str_replace('"', '""', $value) . '"';
+        return ('*' === $value) ? '*' : sprintf($this->wrapper, $value);
+    }
+
+    /**
+     * Compile the "group by" portions of the query.
+     *
+     * @param  \Neko\Database\Query\Builder $query
+     * @param  array $groups
+     * @return string
+     */
+    protected function compileGroups(Builder $query, $groups)
+    {
+        return parent::compileGroups($query, $groups) . ($query->rollup ? ' with rollup' : '');
+    }
+
+
+     /**
+     * Compile an insert statement into SQL.
+     *
+     * @param  \Neko\Database\Query\Builder $query
+     * @param  array $values
+     * @param  array $updateValues
+     * @return string
+     */
+    public function compileInsertOnDuplicateKeyUpdate(Builder $query, array $values, array $updateValues)
+    {
+        $insert = $this->compileInsert($query, $values);
+
+        $update = $this->getUpdateColumns($updateValues);
+        return $insert.' ON CONFLICT('.array_keys(reset($values))[0].') DO UPDATE SET '.$update;
     }
 
 }

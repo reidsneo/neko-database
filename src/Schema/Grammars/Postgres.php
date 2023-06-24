@@ -15,7 +15,7 @@ class Postgres extends Grammar
      *
      * @var string
      */
-    public $wrapper = '%s';
+    public $wrapper = '"%s"';
 
     /**
      * Buat sintaks sql untuk pembuatan tabel.
@@ -386,6 +386,18 @@ class Postgres extends Grammar
     }
 
     /**
+     * Buat definisi tipe data timestamp.
+     *
+     * @param Magic $column
+     *
+     * @return string
+     */
+    protected function type_time(Magic $column)
+    {
+        return 'TIME';
+    }
+
+    /**
      * Buat definisi tipe data text.
      *
      * @param Magic $column
@@ -407,5 +419,18 @@ class Postgres extends Grammar
     protected function type_blob(Magic $column)
     {
         return 'BYTEA';
+    }
+
+    /**
+     * Buat definisi tipe data blob.
+     *
+     * @param Magic $column
+     *
+     * @return string
+     */
+    protected function type_enum(Magic $column)
+    {
+        $columns = array_map([$this, 'wrap'], $column->get("column"));
+        return 'ENUM('.implode(",",$columns).')';
     }
 }

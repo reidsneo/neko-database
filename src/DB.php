@@ -72,7 +72,6 @@ class DB {
 	 */
 	public static function getConnection() {
 		global $pdo;
-
 		if ( is_null( static::$connection ) ) {
 			static::$connection = new Connection( $pdo );
 		}
@@ -85,13 +84,13 @@ class DB {
 	 *
 	 * @param \Database\ConnectionInterface $connection
 	 */
-	public static function setConnection($con_string) {
+	public static function setConnection($con_string=null) {
 		global $app;
 		$factory = new ConnectionFactory();
 
 		if($con_string == null)
 		{
-			$con_string = $app->config['db']["default"];
+			$con_string = $app->config['db'][$app->config['db_connection']];
 		}else{
 			$con_string = $app->config['db'][$con_string];
 		}

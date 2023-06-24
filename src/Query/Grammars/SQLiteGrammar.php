@@ -9,7 +9,7 @@ class SQLiteGrammar extends Grammar
      *
      * @var string
      */
-    public $wrapper = '%s';
+    public $wrapper = '`%s`';
 
     /**
      * All of the available clause operators.
@@ -153,6 +153,22 @@ class SQLiteGrammar extends Grammar
         $value = $this->parameter($value);
 
         return 'strftime(\'' . $type . '\', ' . $this->wrap($where['column']) . ') ' . $where['operator'] . ' ' . $value;
+    }
+    
+    /**
+     * Compile an insert statement into SQL.
+     *
+     * @param  \Neko\Database\Query\Builder $query
+     * @param  array $values
+     * @param  array $updateValues
+     * @return string
+     */
+    public function compileInsertOnDuplicateKeyUpdate(Builder $query, array $values, array $updateValues)
+    {
+        $insert = $this->compileInsert($query, $values);
+
+        $update = $this->getUpdateColumns($updateValues);
+        return $insert.' ON CONFLICT('.array_keys(reset($values))[0].') DO UPDATE SET '.$update;
     }
 
 }

@@ -245,7 +245,7 @@ class Builder extends \Neko\Database\Query\Builder {
 		$this->currentPage = $this->setCurrentPage($currentPage, $this->pageName);
 
 		//var_dump($this->total);
-		//var_dump($this->perPage);
+		//$this->perPage);
 		//var_dump($this->lastPage);
 		//var_dump($this->path);
 		//var_dump($this->currentPage);
@@ -516,5 +516,51 @@ class Builder extends \Neko\Database\Query\Builder {
         return $page >= 1 && filter_var($page, FILTER_VALIDATE_INT) !== false;
 	}
 
+	/**
+     * Prepare the value and operator for a where clause.
+     *
+     * @param  string  $value
+     * @param  string  $operator
+     * @param  bool  $useDefault
+     * @return array
+     *
+     * @throws \InvalidArgumentException
+     */
+    public function prepareValueAndOperator($value, $operator, $useDefault = false)
+    {
+        if ($useDefault) {
+            return [$operator, '='];
+        } elseif ($this->invalidOperatorAndValue($operator, $value)) {
+            throw new \InvalidArgumentException('Illegal operator and value combination.');
+        }
+
+        return [$value, $operator];
+    }
+
+    /**
+     * Determine if the given operator and value combination is legal.
+     *
+     * Prevents using Null values with invalid operators.
+     *
+     * @param  string  $operator
+     * @param  mixed  $value
+     * @return bool
+     */
+    protected function invalidOperatorAndValue($operator, $value)
+    {
+        return is_null($value) && in_array($operator, $this->operators) &&
+             ! in_array($operator, ['=', '<>', '!=']);
+    }
+
+	/**
+     * Get a scalar type value from an unknown type of input.
+     *
+     * @param  mixed  $value
+     * @return mixed
+     */
+    protected function flattenValue($value)
+    {
+        return is_array($value) ? head(Arr::flatten($value)) : $value;
+    }
 
 }

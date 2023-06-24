@@ -1023,4 +1023,16 @@ class Grammar
         return ('*' === $value) ? '*' : sprintf($this->wrapper, $value);
     }
 
+    /**
+     * Compile a "where date" clause.
+     *
+     * @param  \Illuminate\Database\Query\Builder  $query
+     * @param  array  $where
+     * @return string
+     */
+    protected function whereDate(Builder $query, $where)
+    {
+        return $this->dateBasedWhere('date', $query, $where);
+    }
+
 }

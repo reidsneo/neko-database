@@ -3,6 +3,7 @@
 use Closure;
 use Neko\Database\ConnectionInterface;
 use Neko\Database\Query\Grammars\Grammar;
+use Neko\Framework\Util\Date;
 
 class Builder
 {
@@ -1684,6 +1685,7 @@ class Builder
         $sql = $this->grammar->compileInsertOnDuplicateKeyUpdate($this, $values, $updateValues);
         return $this->connection->query($sql, $bindings);
     }
+    
 
     /**
      * Alias for insertOnDuplicateKeyUpdate
@@ -1981,5 +1983,29 @@ class Builder
         $className = get_class($this);
 
         throw new \BadMethodCallException("Call to undefined method {$className}::{$method}()");
+    }
+
+    /**
+     * Add a "where date" statement to the query.
+     *
+     * @param  string  $column
+     * @param  string  $operator
+     * @param  \DateTimeInterface|string|null  $value
+     * @param  string  $boolean
+     * @return $this
+     */
+    public function whereDate($column, $operator, $value = null, $boolean = 'and')
+    {
+        [$value, $operator] = $this->prepareValueAndOperator(
+            $value, $operator, func_num_args() === 2
+        );
+
+        $value = $this->flattenValue($value);
+
+        if (Date::verifyDate($value)) {
+            $value = $value->format('Y-m-d');
+        }
+
+        return $this->addDateBasedWhere('Date', $column, $operator, $value, $boolean);
     }
 }

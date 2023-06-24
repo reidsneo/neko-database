@@ -1,0 +1,41 @@
+<?php
+
+use Neko\Database\Schema;
+use Neko\Database\DB;
+
+class $classname
+{
+    /**
+    * Run the migrations.
+    * $sql_query
+    *
+    */
+    public function up()
+    {
+        Schema::create('$table_name', function ($table) {
+        $table_schema_codes
+        });
+    }
+
+
+    /**
+    * Insert data to schema
+    * 
+    *
+    */
+    public function seed()
+    {
+        $table_schema_seed
+    }
+
+    /**
+    * Reverse the migrations.
+    *
+    *
+    */
+    public function down()
+    {
+        Schema::drop('$table_name');
+    }
+}
+?>

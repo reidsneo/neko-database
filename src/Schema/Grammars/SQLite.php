@@ -4,8 +4,8 @@ namespace Neko\Database\Schema\Grammars;
 
 defined('DS') or exit('No direct script access.');
 
-use System\Arr;
-use System\Magic;
+use Neko\Framework\Util\Arr;
+use Neko\Database\Schema\Magic;
 use Neko\Database\Schema\Table;
 
 class SQLite extends Grammar
@@ -15,7 +15,7 @@ class SQLite extends Grammar
      *
      * @var string
      */
-    public $wrapper = '%s';
+    public $wrapper = '`%s`';
     
     /**
      * Buat sintaks sql untuk pembuatan tabel.
@@ -323,6 +323,18 @@ class SQLite extends Grammar
     protected function type_timestamp(Magic $column)
     {
         return 'DATETIME';
+    }
+
+    /**
+     * Buat definisi tipe data timestamp.
+     *
+     * @param Magic $column
+     *
+     * @return string
+     */
+    protected function type_time(Magic $column)
+    {
+        return 'TIME';
     }
 
     /**

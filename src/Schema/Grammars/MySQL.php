@@ -121,7 +121,7 @@ class MySQL extends Grammar
      */
     protected function collate(Table $table, Magic $column)
     {
-        // TODO: Beberapa tipe kolom (seperti char, enum, set) belum didukung oleh rakit.
+        // TODO: Beberapa tipe kolom (seperti char, enum, set) belum didukung oleh neko framework.
         // saat ini dukungan masih terbatas pada tipe kolom yang berbasis teks.
         if (in_array($column->type, ['string', 'text']) && $column->collate) {
             return ' CHARACTER SET '.$column->collate;
@@ -431,6 +431,18 @@ class MySQL extends Grammar
     protected function type_timestamp(Magic $column)
     {
         return 'TIMESTAMP';
+    }
+
+    /**
+     * Buat definisi tipe data timestamp.
+     *
+     * @param Magic $column
+     *
+     * @return string
+     */
+    protected function type_time(Magic $column)
+    {
+        return 'TIME';
     }
 
     /**
