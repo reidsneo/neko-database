@@ -1,4 +1,5 @@
-<?php namespace Neko\Database\Connectors;
+<?php
+namespace Neko\Database\Connectors;
 
 use Neko\Database\Connection;
 use Neko\Database\Exception\ExceptionHandler;
@@ -49,11 +50,12 @@ class ConnectionFactory implements ConnectionFactoryInterface
     /**
      * @var array
      */
-    protected $excludedLogParams = array('password');
+    protected $excludedLogParams = array( 'password' );
 
-    public function __construct($connectionClassName = null)
+    public function __construct ($connectionClassName = null)
     {
-        if ($connectionClassName) {
+        if ($connectionClassName)
+        {
             $this->connectionClassName = $connectionClassName;
         }
     }
@@ -64,17 +66,19 @@ class ConnectionFactory implements ConnectionFactoryInterface
      * @param  array $config
      * @return \Neko\Database\Connection
      */
-    public function make(array $config)
+    public function make (array $config)
     {
-        if (!isset($config['driver'])) {
-            throw new \InvalidArgumentException("A driver must be specified.");
+        if (!isset($config['driver']))
+        {
+            throw new \InvalidArgumentException( "A driver must be specified." );
         }
 
-        return $this->makeConnection($config, !empty($config['lazy']))->setReconnector(function (Connection $connection) use ($config) {
-            $fresh = $this->makeConnection($config, false);
+        return $this->makeConnection( $config, !empty($config['lazy']) )->setReconnector( function (Connection $connection) use ($config)
+        {
+            $fresh = $this->makeConnection( $config, false );
 
-            return $connection->setPdo($fresh->getPdo())->setReadPdo($fresh->getReadPdo());
-        });
+            return $connection->setPdo( $fresh->getPdo() )->setReadPdo( $fresh->getReadPdo() );
+        } );
     }
 
     /**
@@ -84,13 +88,14 @@ class ConnectionFactory implements ConnectionFactoryInterface
      * @param bool $lazy
      * @return \Neko\Database\Connection
      */
-    protected function makeConnection(array $config, $lazy)
+    protected function makeConnection (array $config, $lazy)
     {
-        if (isset($config['read'])) {
-            return $this->createReadWriteConnection($config, $lazy);
+        if (isset($config['read']))
+        {
+            return $this->createReadWriteConnection( $config, $lazy );
         }
 
-        return $this->createSingleConnection($config, $lazy);
+        return $this->createSingleConnection( $config, $lazy );
     }
 
     /**
@@ -100,18 +105,18 @@ class ConnectionFactory implements ConnectionFactoryInterface
      * @param  bool $lazy
      * @return \Neko\Database\Connection
      */
-    protected function createSingleConnection(array $config, $lazy)
+    protected function createSingleConnection (array $config, $lazy)
     {
         $connection = $this->createConnection();
 
         $connection
-            ->setExceptionHandler($this->createExceptionHandler($config))
-            ->setQueryGrammar($this->createQueryGrammar($config['driver']))
-            ->setTablePrefix(isset($config['prefix']) ? $config['prefix'] : '');
+            ->setExceptionHandler( $this->createExceptionHandler( $config ) )
+            ->setQueryGrammar( $this->createQueryGrammar( $config['driver'] ) )
+            ->setTablePrefix( isset($config['prefix']) ? $config['prefix'] : '' );
 
-        if(!$lazy)
+        if (!$lazy)
         {
-            $connection->setPdo($this->createConnector($config['driver'])->connect($config));
+            $connection->setPdo( $this->createConnector( $config['driver'] )->connect( $config ) );
         }
 
         return $connection;
@@ -121,7 +126,7 @@ class ConnectionFactory implements ConnectionFactoryInterface
     /**
      * @return \Neko\Database\Connection
      */
-    protected function createConnection()
+    protected function createConnection ()
     {
         return new $this->connectionClassName;
     }
@@ -132,13 +137,13 @@ class ConnectionFactory implements ConnectionFactoryInterface
      * @param  array $config
      * @return \Neko\Database\Connection
      */
-    protected function createReadWriteConnection(array $config, $lazy)
+    protected function createReadWriteConnection (array $config, $lazy)
     {
-        $connection = $this->createSingleConnection($this->getWriteConfig($config), $lazy);
+        $connection = $this->createSingleConnection( $this->getWriteConfig( $config ), $lazy );
 
-        if(!$lazy)
+        if (!$lazy)
         {
-            $connection->setReadPdo($this->createReadPdo($config));
+            $connection->setReadPdo( $this->createReadPdo( $config ) );
         }
 
         return $connection;
@@ -150,11 +155,11 @@ class ConnectionFactory implements ConnectionFactoryInterface
      * @param  array $config
      * @return \PDO
      */
-    protected function createReadPdo(array $config)
+    protected function createReadPdo (array $config)
     {
-        $readConfig = $this->getReadConfig($config);
+        $readConfig = $this->getReadConfig( $config );
 
-        return $this->createConnector($readConfig['driver'])->connect($readConfig);
+        return $this->createConnector( $readConfig['driver'] )->connect( $readConfig );
     }
 
     /**
@@ -163,11 +168,11 @@ class ConnectionFactory implements ConnectionFactoryInterface
      * @param  array $config
      * @return array
      */
-    protected function getReadConfig(array $config)
+    protected function getReadConfig (array $config)
     {
-        $readConfig = $this->getReadWriteConfig($config, 'read');
+        $readConfig = $this->getReadWriteConfig( $config, 'read' );
 
-        return $this->mergeReadWriteConfig($config, $readConfig);
+        return $this->mergeReadWriteConfig( $config, $readConfig );
     }
 
     /**
@@ -176,11 +181,11 @@ class ConnectionFactory implements ConnectionFactoryInterface
      * @param  array $config
      * @return array
      */
-    protected function getWriteConfig(array $config)
+    protected function getWriteConfig (array $config)
     {
-        $writeConfig = $this->getReadWriteConfig($config, 'write');
+        $writeConfig = $this->getReadWriteConfig( $config, 'write' );
 
-        return $this->mergeReadWriteConfig($config, $writeConfig);
+        return $this->mergeReadWriteConfig( $config, $writeConfig );
     }
 
     /**
@@ -190,10 +195,11 @@ class ConnectionFactory implements ConnectionFactoryInterface
      * @param  string $type
      * @return array
      */
-    protected function getReadWriteConfig(array $config, $type)
+    protected function getReadWriteConfig (array $config, $type)
     {
-        if (isset($config[$type][0])) {
-            return $config[$type][array_rand($config[$type])];
+        if (isset($config[$type][0]))
+        {
+            return $config[$type][array_rand( $config[$type] )];
         }
 
         return $config[$type];
@@ -206,9 +212,9 @@ class ConnectionFactory implements ConnectionFactoryInterface
      * @param  array $merge
      * @return array
      */
-    protected function mergeReadWriteConfig(array $config, array $merge)
+    protected function mergeReadWriteConfig (array $config, array $merge)
     {
-        return array_diff_key(array_merge($config, $merge), array_flip(array('read', 'write')));
+        return array_diff_key( array_merge( $config, $merge ), array_flip( array( 'read', 'write' ) ) );
     }
 
     /**
@@ -219,9 +225,10 @@ class ConnectionFactory implements ConnectionFactoryInterface
      *
      * @throws \InvalidArgumentException
      */
-    public function createConnector($driver)
+    public function createConnector ($driver)
     {
-        switch ($driver) {
+        switch ($driver)
+        {
             case 'mysql':
                 return new MySqlConnector;
 
@@ -235,7 +242,7 @@ class ConnectionFactory implements ConnectionFactoryInterface
                 return new SqlServerConnector;
         }
 
-        throw new \InvalidArgumentException("Unsupported driver [$driver]");
+        throw new \InvalidArgumentException( "Unsupported driver [$driver]" );
     }
 
     /**
@@ -246,9 +253,10 @@ class ConnectionFactory implements ConnectionFactoryInterface
      *
      * @throws \InvalidArgumentException
      */
-    protected function createQueryGrammar($driver)
+    protected function createQueryGrammar ($driver)
     {
-        switch ($driver) {
+        switch ($driver)
+        {
             case 'mysql':
                 return new MySqlGrammar();
                 break;
@@ -266,13 +274,13 @@ class ConnectionFactory implements ConnectionFactoryInterface
                 break;
         }
 
-        throw new \InvalidArgumentException("Unsupported driver [$driver]");
+        throw new \InvalidArgumentException( "Unsupported driver [$driver]" );
     }
 
-    protected function createExceptionHandler(array $config)
+    protected function createExceptionHandler (array $config)
     {
-        $logSafeParams = array_diff_key($config, array_flip($this->excludedLogParams));
+        $logSafeParams = array_diff_key( $config, array_flip( $this->excludedLogParams ) );
 
-        return new ExceptionHandler($logSafeParams);
+        return new ExceptionHandler( $logSafeParams );
     }
 }

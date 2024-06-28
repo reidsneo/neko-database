@@ -17,6 +17,7 @@ class QueryException extends \RuntimeException {
 	 * @var array
 	 */
 	protected $bindings;
+	protected $previous;
 
 	/**
 	 * Create a new query exception instance.
